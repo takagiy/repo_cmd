@@ -17,3 +17,11 @@ https://github.com/rust-lang/rust
 $ git clone $(repo url rust)
 Cloning into 'rust'...
 ```
+
+## Installation
+
+You can install `repo_cmd` with [`cargo`](https://doc.rust-lang.org/stable/cargo/).
+
+```console
+$ cargo install repo_cmd
+```
