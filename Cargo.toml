@@ -1,5 +1,5 @@
 [package]
-name = "repo"
+name = "repo_cmd"
 version = "0.1.0"
 authors = ["takagiy <takagiy.4dev@gmail.com>"]
 edition = "2018"
@@ -16,3 +16,7 @@ strum = "0.18.0"
 strum_macros = "0.18.0"
 anyhow = "1.0.28"
 thiserror = "1.0.16"
+
+[[bin]]
+name = "repo"
+path = "src/main.rs"
