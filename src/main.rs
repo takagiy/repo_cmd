@@ -69,20 +69,20 @@ const API_URL: &str = "https://api.github.com/search/repositories";
 
 fn send_request(query: &str, output: Output) -> Result<String> {
     let client = reqwest::blocking::Client::new();
-    let responce: Response = client
+    let response: Response = client
         .get(API_URL)
         .header(header::USER_AGENT, user_agent())
         .query(&[("per_page", "10"), ("q", query)])
         .send()
         .with_context(|| "Connection failed")?
         .json()
-        .with_context(|| "Invalid API responce")?;
+        .with_context(|| "Invalid API response")?;
 
-    let repository = responce
+    let repository = response
         .items
         .ok_or(anyhow!(
-            "Invalid API responce, '{}'",
-            responce.message.unwrap_or("".into())
+            "Invalid API response, '{}'",
+            response.message.unwrap_or("".into())
         ))?
         .drain(..)
         .find(|repo| repo.name == query)
