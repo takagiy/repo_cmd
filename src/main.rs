@@ -137,19 +137,13 @@ fn try_main() -> Result<()> {
 }
 
 fn main() {
-    match try_main() {
-        Err(e) => {
-            eprintln!("error: {}", e);
-            match e.downcast_ref::<CommandError>() {
-                Some(e) => match e {
-                    CommandError::InvalidArguments(_) => {
-                        eprintln!("{}", usage());
-                    }
-                },
-                None => (),
+    if let Err(e) = try_main() {
+        eprintln!("error: {}", e);
+        if let Some(e) = e.downcast_ref::<CommandError>() {
+            match e {
+                CommandError::InvalidArguments(_) => eprintln!("{}", usage())
             }
-            std::process::exit(1);
         }
-        _ => (),
+        std::process::exit(1);
     }
 }
