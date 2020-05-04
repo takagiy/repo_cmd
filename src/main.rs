@@ -65,29 +65,46 @@ fn parse_arguments<'a, T: 'a + Borrow<str>>(args: &'a [T]) -> Result<Command<'a>
     Ok(Command::Repo(args.last().unwrap().borrow(), output))
 }
 
+const MAX_PAGE: u32 = 5;
 const API_URL: &str = "https://api.github.com/search/repositories";
 
 fn send_request(query: &str, output: Output) -> Result<String> {
-    let client = reqwest::blocking::Client::new();
-    let response: Response = client
-        .get(API_URL)
-        .header(header::USER_AGENT, user_agent())
-        .query(&[("per_page", "10"), ("q", query)])
-        .send()
-        .with_context(|| "Connection failed")?
-        .json()
-        .with_context(|| "Invalid API response")?;
-
-    let mut candidates = response.items.ok_or(anyhow!(
-        "Invalid API response, '{}'",
-        response.message.as_deref().unwrap_or("")
-    ))?;
-
     let normal_query = query.to_ascii_lowercase();
-    let repository = candidates
-        .drain(..)
-        .find(|repo| repo.name.to_ascii_lowercase() == normal_query)
-        .ok_or(anyhow!("No repository named '{}' found", query))?;
+    let client = reqwest::blocking::Client::new();
+
+    let repository = {
+        let mut repository = None;
+        for page in 1..MAX_PAGE {
+            let response: Response = client
+                .get(API_URL)
+                .header(header::USER_AGENT, user_agent())
+                .query(&[
+                    ("per_page", "10"),
+                    ("page", &page.to_string()),
+                    ("q", query),
+                ])
+                .send()
+                .with_context(|| "Connection failed")?
+                .json()
+                .with_context(|| "Invalid API response")?;
+
+            let mut candidates = response.items.ok_or(anyhow!(
+                "Invalid API response, '{}'",
+                response.message.as_deref().unwrap_or("")
+            ))?;
+
+            let found = candidates
+                .drain(..)
+                .find(|repo| repo.name.to_ascii_lowercase() == normal_query);
+
+            if found.is_some() {
+                repository = found;
+                break;
+            }
+        }
+        repository
+    }
+    .ok_or(anyhow!("No repository named '{}' found", query))?;
 
     Ok(match output {
         Output::FullName => repository.full_name,
