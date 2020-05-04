@@ -78,14 +78,15 @@ fn send_request(query: &str, output: Output) -> Result<String> {
         .json()
         .with_context(|| "Invalid API response")?;
 
-    let repository = response
-        .items
-        .ok_or(anyhow!(
-            "Invalid API response, '{}'",
-            response.message.unwrap_or("".into())
-        ))?
+    let mut candidates = response.items.ok_or(anyhow!(
+        "Invalid API response, '{}'",
+        response.message.unwrap_or("".into())
+    ))?;
+
+    let normal_query = query.to_ascii_lowercase();
+    let repository = candidates
         .drain(..)
-        .find(|repo| repo.name == query)
+        .find(|repo| repo.name.to_ascii_lowercase() == normal_query)
         .ok_or(anyhow!("No repository named '{}' found", query))?;
 
     Ok(match output {
