@@ -80,7 +80,7 @@ fn send_request(query: &str, output: Output) -> Result<String> {
 
     let mut candidates = response.items.ok_or(anyhow!(
         "Invalid API response, '{}'",
-        response.message.unwrap_or("".into())
+        response.message.as_deref().unwrap_or("")
     ))?;
 
     let normal_query = query.to_ascii_lowercase();
