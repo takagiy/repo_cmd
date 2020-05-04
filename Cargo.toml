@@ -1,6 +1,6 @@
 [package]
 name = "repo_cmd"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["takagiy <takagiy.4dev@gmail.com>"]
 edition = "2018"
 
