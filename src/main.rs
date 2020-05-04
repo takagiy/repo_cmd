@@ -113,14 +113,12 @@ fn version() -> String {
 }
 
 #[derive(Error, Debug)]
-enum CommandError {
-    #[error("{0}")]
-    InvalidArguments(anyhow::Error),
-}
+#[error("{0}")]
+struct ArgumentsError(anyhow::Error);
 
 fn try_main() -> Result<()> {
     let args: Vec<_> = std::env::args().collect();
-    let command = parse_arguments(&args[1..]).map_err(|e| CommandError::InvalidArguments(e))?;
+    let command = parse_arguments(&args[1..]).map_err(|e| ArgumentsError(e))?;
     match command {
         Command::Repo(query, output) => {
             let result = send_request(query, output)?;
@@ -139,10 +137,8 @@ fn try_main() -> Result<()> {
 fn main() {
     if let Err(e) = try_main() {
         eprintln!("error: {}", e);
-        if let Some(e) = e.downcast_ref::<CommandError>() {
-            match e {
-                CommandError::InvalidArguments(_) => eprintln!("{}", usage())
-            }
+        if e.is::<ArgumentsError>() {
+            eprintln!("{}", usage());
         }
         std::process::exit(1);
     }
